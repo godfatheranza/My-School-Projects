@@ -1,0 +1,1087 @@
+---
+title: 'Project #2 – Univariate and Bivariate Analysis'
+output:
+  html_document:
+    df_print: paged
+---
+
+# Group Number : 1
+
+Member No. | Name         | Student ID
+---------- | -------------|-------------
+Member 1   | Viraj Modi   | 0748396
+Member 2   | Nimish Kumar | 0750313
+Member 3   | Anshul Rawat | 0749792
+
+
+
+
+## As Per Given Instructions for project 2 we will use project 1 Dataset which is GooglePlayStore Dataset From kaggle.
+
+
+## Description Of Data Set:
+
+### Link: https://www.kaggle.com/lava18/google-play-store-apps
+### Data created by : Lavanya Gupta.
+
+### Description Of Data:
+
+This dataset includes Gooele Playstore App data.This all apps are those which we usually store into our phone.This information is scraped from the Google Play Store. Purpose behind scrapping data was actionable insights can be drawn for developers to work on and capture the Android market.
+
+#### Structure of Data:
+
+#### Total Number Of Columns : 13
+#### Total Number of Rows : 10841
+
+#### Column Names:
+
+1. App: Name of Application.
+2. Category: Under Which category Application comes.
+-- For Example:
++ ART_AND_DESIGN
++ GAME
++ COMIC
++ BUSINESS
++ SPORTS
++ SOCIAL.. Likewise
+
+3. Rating: out of 5 how many ratings it got
+4. Reviews: Total Number of reviews it got
+5. Size: dowaload size of app in MB
+6. Installs: Total Number of Installations  
+7. Type: Application is Free or Paid
+8. Price: If App is paid than price is stored here 
+9. Content Rating: app content rating given by whom
+-- For Example:
++ Adults Only 18+
++ Everyone
++ Everyone 10+..likewise
+
+10. Genres: Under which genre application comes
+-- For Example:
++ Action
++ Adventure
++ Casio
++ Beauty.. likewise
+
+11. Last Updated: Datetime on which application was updated.
+12. Current Ver:	lastet version of application
+13. Android Ver: Minimum Andriod Version Required for installing App.
+
+
+
+## Loading Important Libraries:
+
+
+```{r warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(here)
+```
+
+
+
+## General Over View of Dataset:
+</br>
+
+
+## Reading Dataset
+
+
+```{r warning=FALSE}
+google_app <- read_csv(here("Data", "googleplaystore.csv"))
+```
+
+
+## Dimesion Of Dataset
+
+```{r}
+dim(google_app)
+```
+
+
+## List Of All Columns
+
+```{r}
+colnames(google_app)
+```
+
+
+## Structure Of Dataset
+
+```{r}
+str(google_app)
+```
+
+
+## Summary of Dataset
+
+```{r}
+summary(google_app)
+```
+
+
+## Total Number of NA in each Column
+
+
+```{r}
+colSums(is.na(google_app))
+```
+
+</br>
+
+## Member 1 :Viraj Modi</br>
+## Univariate and Bivariate Analysis
+
+</br>
+
+### For Doing Univariate and Bivariate Analysis i will use: </br>
+
+#### 1. Numerc variable : Rating,Size</br>
+#### 2. Categorical Variable : Type.</br>
+
+
+
+## Getting Required Data and Storing into new varibale
+
+
+```{r}
+goo_eda <- google_app %>% select(Type,Rating,Size)
+head(goo_eda)
+tail(goo_eda)
+```
+
+
+## Exploring Dataset
+
+
+```{r}
+glimpse(goo_eda)
+```
+
+```{r}
+summary(goo_eda)
+```
+
+```{r}
+dim(goo_eda)
+```
+
+```{r}
+colSums(is.na(goo_eda))
+```
+
+## Data Cleaning:
+
+--- Size Variable is having app size in Kilobytes and megabytes for that it is showing M and K.</br>
+--- I will remove 'M' and 'k' from size varible and change it to numeric.Also will convert all size to one measure which is Megabyte.</br>
+--- change Type variable to Factor type.</br>
+--- Removing all NA from Data Set</br>
+
+```{r warning=FALSE}
+
+size_in_m <- goo_eda[grep('M', goo_eda$Size),]$Size #Removing all M symbol
+size_in_m <- gsub('M', '', size_in_m) # Removing all M symbol
+size_in_m <- as.numeric(size_in_m) #converting to numeric
+
+size_in_k <- goo_eda[grep('k', goo_eda$Size),]$Size #Removing all K symbol
+size_in_k <- gsub('k', '', size_in_k) #Removing all K symbol
+size_in_k <- as.numeric(size_in_k)/1024 #converting to numeric as well as from Kilobytes to megabytes.
+
+
+#creating a new variable and storing all cleanned values into new variable.
+
+goo_eda$all_size_in_m = NA
+goo_eda[grep('k', goo_eda$Size),]$all_size_in_m <- size_in_k
+goo_eda[grep('M', goo_eda$Size),]$all_size_in_m <- size_in_m
+
+goo_eda$Size <- NULL #Removing Old Size Variable
+
+goo_eda$Type <- as.factor(goo_eda$Type) # Converting it into Factor
+
+
+glimpse(goo_eda)
+
+summary(goo_eda)
+```
+
+
+## Univariate Analysis on Numeric Variable
+
+
+#### Here i am using  all_size_in_m  Variable for doing univariate analysis using numeric variable.
+
+#### Brief description About Varibale:
+
+* all_size_in_m  : Application Size in Megabyte At the time of installing and from statstical point of view it is continuous variable.
+
+
+
+> Question 1: Create an appropriate plot to visualize the distribution of this variable. (4 marks)
+
+```{r warning=FALSE}
+ggplot(goo_eda,mapping = aes(x = all_size_in_m )) +
+  geom_histogram(fill="orange",col = "black") +
+  ggtitle("App Size Distribution") +
+  xlab("App Size in Megabyte")
+  
+```
+
+
+```{r warning = FALSE}
+ggplot(goo_eda,aes(x = all_size_in_m,))+
+  geom_density(col="black",fill = "orange") +
+  ggtitle("Density Plot Of Size Distribution") +
+  xlab("App Size in Megabyte")
+```
+
+
+--- Here we have not specified binwidth let us try putting different bins and than try to visualize variable.
+
+```{r}
+ggplot(goo_eda,aes(x = all_size_in_m)) +
+    geom_histogram(fill="orange",col = "black",binwidth =0.5) +
+    ggtitle("App Size Distribution") +
+    xlab("App Size in Megabyte")
+```
+
+```{r}
+ggplot(goo_eda,aes(x = all_size_in_m)) +
+  geom_histogram(fill="orange",col = "black",binwidth =1.5) +
+  ggtitle("App Size Distribution") +
+  xlab("App Size in Megabyte")
+```
+
+--- As we can see every different binwidth gives us different distribution.</br>
+--- We will find best suitable binwidth by finding range.</br>
+
+```{r}
+print(max(goo_eda$all_size_in_m,na.rm = TRUE))
+```
+
+```{r}
+print(min(goo_eda$all_size_in_m,na.rm = TRUE))
+```
+
+```{r}
+size_range <- max(goo_eda$all_size_in_m,na.rm = TRUE) - min(goo_eda$all_size_in_m,na.rm = TRUE)
+size_range <- size_range / 30
+size_range
+```
+
+--- Here we divided range by 30 beacause by deafult bin width is 30.</br>
+--- we find that 3.33 binwidth should give us appropriate Size distribution.</br>
+
+```{r warning=FALSE}
+ggplot(goo_eda,aes(x = all_size_in_m)) +
+  geom_histogram(fill="orange",col = "black",binwidth =3.33) +
+    ggtitle("App Size Distribution") +
+  xlab("App Size in Megabyte")
+```
+
+
+> Question 2: Consider any outliers present in the data. If present, specify the criteria used to identify them and provide a logical explanation for how you handled them. (4 marks)
+
+--- Form Above Histogram distribution sugeests us that data is properly skewed and most of app size is less than 25 MB.But here we can not see any outlier that is different or any point which is too vague from normal point because nowadays app size is 75 MB or sometimes 80 MB for highly version maintained app which gets updated every two weeks like Facebook,Twiter,LinkedIn have size of 100 MB or sometimes gets larger than 100 MB.</br>
+
+--- Apart from this it suggests app developer that one should always make app which is in size between 0 MB to 25 MB.</br>
+
+
+> Question 3: Describe the shape and skewness of the distribution. (2 marks)
+
+--- Since our most of data is on right side of distribution and our mean is also greater than median it suggest us that distribution of our size variable  is right skewed and it's unimodal. </br>
+
+```{r warning=FALSE}
+ggplot(goo_eda,aes(x = all_size_in_m)) +
+  geom_histogram(fill="orange",col = "black",binwidth =3.33) +
+    ggtitle("App Size Distribution") +
+  xlab("App Size in Megabyte")
+```
+
+
+```{r}
+summary(goo_eda$all_size_in_m,na.rm = TRUE)
+```
+
+> Question 4: Based on your answer to the previous question, decide if it is appropriate to apply a
+transformation to your data. If no, explain why not. If yes, name the transformation applied and
+visualize the transformed distribution
+
+--- Based upon answer to previous question i can say that i don't need to apply transformation on my variable.</br>
+--- Reason is if we apply tranformation on data to normalize it but since size variable is Propely Skewed and don't have any outlier we don't need to distribute on log10 and sqrt scale basis.</br>
+--- Below i have  visualized on log10 and sqrt scale  to prove my point.</br>
+
+```{r warning=FALSE}
+library(gridExtra) #For showing all Graph into one grid
+
+p1 <- ggplot(goo_eda,aes(x = all_size_in_m +1)) +
+  geom_histogram(fill="orange",col = "black",binwidth = 3.33)+
+   ggtitle("App Size Distribution") +
+  xlab("App Size in Megabyte")
+p2 <-ggplot(goo_eda,aes(x = all_size_in_m +1)) +
+    geom_histogram(fill="orange",col = "black")+
+     ggtitle("App Size Distribution") +
+    xlab("App Size in Megabyte(using Log10 Scale)")+ 
+    scale_x_log10()
+p3 <- ggplot(goo_eda,aes(x = all_size_in_m +1)) +
+    geom_histogram(fill="orange",col = "black")+
+     ggtitle("App Size Distribution") +
+    xlab("App Size in Megabyte(using SQRT Scale)")+ 
+    scale_x_sqrt()
+
+grid.arrange(p1,p2,p3,ncol=1)
+```
+
+> Question 5: Choose and calculate an appropriate measure of central tendency. (3 marks)
+
+--- I will find mean and median of Size varibale also try to visualize it.</br>
+--- Here we can see our mean is greater than median which tell us that our varibale has skewness and therefore median we can choose as our measure of central tendency.</br> 
+
+```{r}
+(goo_size_mean <- mean(goo_eda$all_size_in_m,na.rm = TRUE))
+```
+
+```{r}
+(goo_size_median <- median(goo_eda$all_size_in_m,na.rm = TRUE))
+```
+
+```{r}
+(goo_size_mean - goo_size_median)/goo_size_median #percent difference 
+```
+
+
+```{r warning= FALSE}
+ggplot(goo_eda,aes(x = all_size_in_m)) +
+   geom_histogram(fill="orange",col = "black",binwidth =3.33)+
+   geom_vline(aes(xintercept = goo_size_mean), color = "red", linetype = "solid", size = 1) +
+   geom_vline(aes(xintercept = goo_size_median), color = "blue", linetype = "solid", size = 1) +
+   ggtitle("App Size Distribution") +
+   xlab("App Size in Megabyte") 
+   
+```
+ 
+> Question 6: Explain why you chose this as your measure of central tendency. Provide supporting evidence
+for your choice. (4 marks)
+
+--- Becasue we know that median is most robust measure to outliers compare to mean and it also gives us center of data distribution.</br>
+--- here our median is 13 which helps to find skewness in our variable easily also we can detect outliers in it.</br>
+--- When we have a skewed distribution, the outliers in the tail pull the mean away from the center towards the longer tail.as here we can see difference between mean and median is around 7 than in this situation median is good to represt central tendency for distribution.</br>
+
+
+> Question 7: Choose and calculate a measure of spread that is appropriate for your chosen measure of
+central tendency. Explain why you chose this as your measure of spread. (2 marks)
+
+--- When our variable is highly skewed it is always better to choose IQR as measure of spread because it helps to find percentage of observations that are comes under specific  distances from mean.It is also same like median very robust to outliers.</br>
+--- Here we can see our IQR is very near to our mean so we can easily find outliers and also observations those are near to mean.</br>
+
+```{r}
+IQR(goo_eda$all_size_in_m,na.rm = TRUE)
+```
+
+## Univariate Analysis on Categorical Variable
+
+
+#### Here i am using  Type  Variable for doing univariate analysis using Categorical variable.
+
+#### Brief description About Varibale:
+
+* Type  : Application Type weather it's Free or Paid  and from statstical point of view it is categorical variable.
+
+
+```{r}
+unique(goo_eda$Type)
+```
+
+--- here we can see that Type varible id having 0 and NaN which is nothing but garbadge values.
+
+```{r}
+goo_eda$Type[ !is.finite(goo_eda$Type) ]
+```
+
+
+> Question 1: Create an appropriate plot to visualize the distribution of counts for this variable. (4 marks).
+
+```{r}
+ggplot(goo_eda, aes(x = Type)) +
+  geom_bar(fill = 'orange', colour = 'black')+
+  ggtitle("Count of Each App Type")+
+  xlab("App Type")
+```
+
+--- Verifying My Results with Graph by manully counting each varible.
+
+
+```{r}
+goo_eda %>% count(Type)
+```
+
+> Question 2: Create an appropriate plot to visualize the distribution of proportions for this variable. (4 marks)
+
+
+```{r}
+ggplot(goo_eda, aes(x = Type, y = ..prop.., group = 1), stat = 'count') +
+  geom_bar(fill = 'orange', colour = 'black')+
+  ggtitle("Proportion of Each App Type")+
+  xlab("App Type")
+```
+
+--- Verifying My Results with Graph by manully counting each varible.
+
+```{r}
+goo_eda %>% group_by(Type) %>% 
+  summarize(n = n()) %>% 
+  mutate(proportion = n / sum(n))
+```
+
+> Question 3: Discuss any unusual observations for this variable? (2 marks)
+
+--- From results above we can see that compare to Paid app free app are more out of total 10841 observations 10039 observations are for free app which is nearly 92% of total varibales.</br>
+
+> Question 4: Discuss if there are too few/too many unique values? (2 marks)
+
+--- Clearly can see that Free app are more compare to Paid app.
+
+```{r}
+goo_eda %>% group_by(Type) %>% 
+  summarize(n = n()) %>% 
+  mutate(Proportion = n / sum(n)) %>% 
+  arrange(desc(n))
+```
+
+```{r}
+goo_eda %>% group_by(Type) %>% 
+  summarize(n = n()) %>% 
+  mutate(Proportion = n / sum(n)) %>% 
+  arrange(n)
+```
+
+## Bivariate Analysis on pair of Numeric Variables
+
+#### Here i am using Rating and all_size_in_m variable for doing Bivariate Analysis on both Numerical variable.
+
+#### Brief Description About Both variables:
+
+* all_size_in_m  : Application Size in Megabyte At the time of installing and from statstical point of view it is continuous variable.
+
+* Rating : Application Rating is given by user between 1 to 5  here 1 is lowest rating and 5 is highest rating.
+
+
+> Question 1: Create an appropriate plot to visualize the relationship between the two variables. (4 marks)
+
+```{r warning=FALSE}
+#Removing NA Values From both Rating and Size Variable
+goo_rat_size_clean <- goo_eda %>% filter(!is.na(Rating)) %>% filter(!is.na(all_size_in_m))
+
+ggplot(goo_rat_size_clean,aes(x= Rating,y = all_size_in_m)) + 
+  geom_point(shape = 15,alpha = 0.4) +
+  geom_smooth(method = 'lm',se = FALSE)+ 
+  ggtitle("Relationship Between Application Rating and Size")+
+  xlab("App Rating")+
+  ylab("App Size in MB")
+```
+
+> Question 2: Describe the form, direction, and strength of the observed relationship. Include both qualitative and quantitative measures, as appropriate. (4 marks)
+
+--- From scatter plot we can see that App size variable has  positive linear relationship with App Rating  variable.</br>
+--- correlation coefficient is also Positive which confirms Positive linear relationship between App Rating and  App Size variable.</br>
+--- Although Positive relationship is weak between size and price variable beacause Correlation coefficient is very far from value 1.</br>
+
+```{r}
+cor(goo_rat_size_clean$Rating,goo_rat_size_clean$all_size_in_m) 
+```
+
+> Question 3: Explain what this relationship means in the context of the data. (4 marks)
+
+--- Even it is Weak relationship between App Size and App Rating on average it shows that as App rating increases App Size is also increasing.</br>
+--- The Harmony in App size increases as App Rating increases.</br>
+--- Data Also Shows some variations like there are few App rating which is less still it is showing large App size.</br>
+
+> Question 4 : Describe the variability that you observe in the plot and how that corresponds to the strength you calculated in #2 above. (3 marks)
+
+--- The scatter gives positive linear relationship between both App size and Ratiing variables based upon their values we can see that As app rating increases app size also increases.</br>
+--- Variability in data looks very consistent across all rating but there are some of values where rating is less still app size Large for example we can see rating 2.5 and app size is nearly 90 MB.</br>
+
+```{r}
+summary(goo_rat_size_clean$Rating)
+```
+```{r}
+summary(goo_rat_size_clean$all_size_in_m)
+```
+
+
+## Bivariate Analysis on one Numeric Variables and one categorical variable
+
+
+#### Here i am using all_size_in_m variable as numeric variable and Type as categorical variable for doing Bivariate Analysis.
+
+#### Brief Description About Both variables:
+
+* all_size_in_m  : Application Size in Megabyte At the time of installing and from statstical point of view it is continuous variable.
+
+* Type  : Application Type weather it's Free or Paid  and from statstical point of view it is categorical variable.
+
+
+> Question 1: Create an appropriate plot to visualize the relationship between the two variables. (4 marks)
+
+```{r}
+#Removing NA Values From both Type and Size Variable
+
+goo_size_type_clean <- goo_eda %>% filter(!is.na(all_size_in_m)) %>% filter(!is.nan(Type))
+
+ggplot(goo_size_type_clean, aes(x = Type, y = all_size_in_m,col=Type)) +
+  geom_boxplot() +
+  geom_jitter(alpha = 0.1)+
+  ggtitle("Relationship Between Application Type and Size")+
+  xlab("App Type")+
+  ylab("App Size in MB")+
+  coord_flip()
+
+```
+
+
+> Question 2: Describe the form, direction, and strength of the observed relationship. Include both qualitative and quantitative measures, as appropriate. (4 marks)
+
+--- From Boxplot above we can find it positive linear relationship between App type and App Size and strength of relationship is also strong.</br>
+
+> Question 3: Explain what this relationship means in the context of the data. (4 marks)
+
+--- From above boxplot we can see that Q1 of Free App Type is Greater than median of Paid App type.</br>
+--- This thing helps us to find relationship that If app size is greater than 13 MB(which is median of Free App Type) than it is more likely Free App and like wise if app size less than 13 MB is more likely Paid App.</br>
+
+
+> Question 4 : Describe the variability that you observe in the plot and how that corresponds to the strength you calculated in #2 above. (3 marks)
+
+--- Compare to Paid App Type Free App type is nearly symatrical over app size where Paid app are having right skewness towards App size.</br>
+--- Since most of data is having free app this could effect our relationship between both varibles.</br>
+--- Some of App which are having greater Size still they are Paid app which tells us that variability in our data is not consistent because for most of free app is having smaller app size and few paid app also have large app size.</br></br>
+
+### *** END of Member 1: Viraj Modi Work ***
+
+<br>
+</br>
+
+## Member 2 :Nimish Kumar</br>
+## Univariate and Bivariate Analysis
+
+</br>
+
+### For Doing Univariate and Bivariate Analysis i will use: </br>
+
+#### 1. Numerc variable : Reviews,Installs</br>
+#### 2. Categorical Variable : Content Rating</br>
+
+
+```{r}
+google <- read_csv(here("Data", "googleplaystore.csv"))
+```
+
+```{r}
+glimpse(google)
+```
+
+```{r}
+sum(is.na(google$Reviews))
+```
+
+## Univariate Analysis on Numeric Variable
+
+#### Here i am using  reviews  Variable for doing univariate analysis using numeric variable.
+
+#### Brief description About Varibale:
+
+* Reviews  : Numbers of reviews App has and from statstical point of view it is continuous variable.
+
+> Question1: Create an appropriate plot to visualize the distribution of numeric variable.
+
+```{r}
+options(scipen=999)
+G1 <- ggplot(google,aes(x=Reviews))+geom_histogram(fill= 'blue', color='black')
+G1
+```
+
+> Question 2: Consider any outliers present in the data. If present, specify the criteria used to identify them and provide a logical explanation for how you handled them.
+
+--- By looking at the histogram we can estimate that the outliers start after Reviews=20000000. But it is only an estimate and will require expert judgment,but the two little peaks beyond Reviews=20000000 should definitely be considered as outliers for this variable. we need to check the values of them.
+
+```{r}
+google %>% filter(Reviews > 20000000)
+```
+
+> Question 3:Describe the shape and skewness of the distribution.
+
+--- The Shape of the above distribution is Unimodal and it is right skewed.
+
+> Question 4: Based on your answer to the previous question, decide if it is appropriate to apply a
+transformation to your data. If no, explain why not. If yes, name the transformation applied and
+visualize the transformed distribution.
+
+--- It was appropriate to transform the data so that its easy to read. The trasformation applied is called Log transformation.
+
+```{r}
+hist(google$Reviews)
+hist(log(google$Reviews + 1), breaks=100)
+```
+
+> Question 5: Choose and calculate an appropriate measure of central tendency. 
+
+--- The mean value
+
+```{r}
+avg_review <- mean(google$Reviews,na.rm=TRUE)
+avg_review
+```
+
+--- The median value
+
+```{r}
+med_review <- median(google$Reviews,na.rm=TRUE)
+med_review
+```
+
+--- percent difference
+```{r}
+(avg_review - med_review)/med_review
+```
+
+> Question 6: Explain why you chose this as your measure of central tendency. Provide supporting evidence
+for your choice.
+
+--- The mean comes to be more than the median, which confirms the skewness in the histogram.
+
+--- It would be better to use the median as a measure of central tendency because the distribution is skewed. We know that the median is more robust to outliers than the mean so this should give us better results of the data distribution.
+
+
+> Question 7:Choose and calculate a measure of spread that is appropriate for your chosen measure of
+central tendency. Explain why you chose this as your measure of spread.
+
+--- We used the interquartile range as a measure of spread becuase it is a better measure than standard deviation to tackle skewness and outliers.
+
+```{r}
+IQR(google$Reviews,na.rm=TRUE)
+```
+
+
+## Univariate Analysis on Categorical Variable
+
+#### Here i am using  Content Rating  Variable for doing univariate analysis using Categorical variable.
+
+#### Brief description About Varibale:
+
+* Content Rating  : App Rating Given by Which category of person like Adult only 18+,everyone,everyone 10+ likewise and from statstical point of view it is categorical variable.
+
+> Question 1: Create an appropriate plot to visualize the distribution of counts for this variable. 
+
+```{r}
+G2 <- ggplot(google, aes(x = `Content Rating`)) +
+  geom_bar(fill = 'skyblue', colour = 'black')+coord_flip()
+G2
+```
+
+> Question 2:  Create an appropriate plot to visualize the distribution of proportions for this variable
+
+```{r}
+G3 <- ggplot(google, aes(x = `Content Rating`, y = ..prop.., group = 1)) +
+  geom_bar(fill = 'skyblue', colour = 'black')+ coord_flip()
+G3
+```
+
+```{r}
+unique(google$`Content Rating`)
+```
+
+> Question 3:  Discuss any unusual observations for this variable?
+
+--- The unusual obsrvation about this variable is that the highest rating is from everyone whereas the other values has not reodered rating nearly enough.
+
+> Question 4:  Discuss if there are too few/too many unique values?
+
+--- There are too few unique values in this variable. The distribution could have been done by the age groups.
+
+
+## Bivariate Analysis on pair of Numeric Variables
+
+#### Here i am using Reviews and Installs variable for doing Bivariate Analysis on both Numerical variable.
+
+#### Brief Description About Both variables:
+
+* Installs  : Total Numer of Installs for each Application and from statstical point of view it is continuous variable.
+
+* Reviews : Numbers of reviews App has and from statstical point of view it is continuous variable.
+
+## Data Cleaning:
+
+```{r}
+google_clean <- google %>%
+  mutate(Installs = gsub("\\+","", as.character(Installs)),
+    Installs = as.numeric(gsub(",", "", Installs)))
+google_clean
+```
+
+```{r}
+str(google_clean)
+```
+
+> Question 1: Create an appropriate plot to visualize the relationship between the two variables.
+
+```{r}
+G4 <- ggplot(google_clean, aes(x = Installs, y = Reviews)) + geom_smooth(method="lm",se =FALSE)+
+  geom_point(shape = 21) 
+G4
+```
+
+## Bivariate Analysis on one Numeric Variables and one categorical variable
+</br>
+
+#### Here i am using Reviews variable as numeric variable and Content Rating as categorical variable for doing Bivariate Analysis.
+
+#### Brief Description About Both variables:
+
+* Reviews  : Numbers of reviews App has and from statstical point of view it is continuous variable.
+
+* Content Rating  : App Rating Given by Which category  of person like Adult only 18+,everyone,everyone 10+ likewise and from statstical point of view it is categorical variable.
+
+```{r}
+G5 <- ggplot(google_clean, aes(x = google$`Content Rating`, y = Reviews)) +
+  geom_boxplot()
+G5
+```
+
+--- Correlation Coefficient
+
+```{r}
+cor(google_clean$Installs, google_clean$Reviews,use="complete.obs")
+```
+
+### *** END of Member 2: Nimish Kumar Work ***
+
+
+</br>
+</br>
+
+
+
+## Member 3 :Anshul Rawat</br>
+## Univariate and Bivariate Analysis
+
+</br>
+
+### For Doing Univariate and Bivariate Analysis i will use: </br>
+
+#### 1. Numerc variable : Rating,Installs</br>
+#### 2. Categorical Variable : Category,Content Rating</br>
+
+```{R}
+play<- read.csv(here("Data","googleplaystore.csv"))
+```
+
+## Data Cleaning:
+
+```{R}
+
+play <- na.omit(play)
+
+
+play$Installs <- str_replace_all(play$Installs,"[+]","") #removing all + symbols
+play$Installs <- str_replace_all(play$Installs,",","") #removing all , symbols
+play$Price <- str_replace_all(play$Price,"[$]","") #removing all $ symbols
+play$Size <- str_replace_all(play$Size,"M","") #removing All M char
+play$Size <- str_replace_all(play$Size,"K","") #removing All k char
+play$Reviews <- as.numeric(play$Reviews)
+play$Installs <- as.numeric(play$Installs)
+play$Price <- as.numeric(play$Price)
+play$Size <- as.numeric(play$Size)
+
+glimpse(play)
+```
+
+## Univariate Analysis on Numeric Variable
+
+#### Here i am using  Rating Variable for doing univariate analysis using numeric variable.
+
+#### Brief description About Varibale:
+
+* Rating  : Rating App has given between 1 to 5 where 1 is lowest 5 is highest and from statstical point of view it is continuous variable.</br>
+
+> Question 1: Create an appropriate plot to visualize the distribution of this variable
+
+```{R}
+ggplot(play, aes(Rating)) +
+    geom_histogram(fill = 'skyblue', colour = 'black',stat='count')+ggtitle("Rating wise distribution of counts")
+```
+
+> Question 2: Consider any outliers present in the data. If present, specify the criteria used to identify them
+and provide a logical explanation for how you handled them.
+
+#### Ans.2 
+</br>
+--- It appears (by looking at the histogram) that outliers start at rating>5. The only outlier we see in our dataset is Life Made WI-Fi Touchscreen Photo Frame  App.But here we can see that the 3 million users have rated this app which is far more than any other app, so it seems quite fair that this app is given 19 rating .This could be a result of its tremendous performance,popularity and use of the app.Seems like the outliers is a reasonable data point.
+
+```{R}
+play %>% filter(Rating > 5)
+```
+
+
+> Question 3: Describe the shape and skewness of the distribution.
+
+```{R}
+ggplot(play, aes(Rating)) +
+    geom_histogram(fill = 'skyblue', colour = 'black',stat='count')+ggtitle("Category wise distribution of counts")
+```
+```{r}
+abc=(max(play$Rating,na.rm=TRUE)-min(play$Rating,na.rm=TRUE))/30
+abc
+ggplot(play, aes(Rating)) +
+    geom_histogram(fill = 'skyblue', colour = 'black',stat='count',binwidth=abc)+ggtitle("Category wise distribution of counts")
+```
+
+
+--- The distribution of the wage variable is unimodal and left skewed because median is higher than mean.
+
+```{R}
+med_Rating <- median(play$Rating,na.rm = TRUE)
+mean_Rating <- mean(play$Rating,na.rm = TRUE)
+mean_Rating
+med_Rating
+abc=(max(play$Rating,na.rm=TRUE)-min(play$Rating,na.rm=TRUE))/30
+abc
+```
+
+> Question 4: Based on your answer to the previous question, decide if it is appropriate to apply a
+transformation to your data. If no, explain why not. If yes, name the transformation applied and
+visualize the transformed distribution.
+
+#### Ans.
+</br>
+```{r}
+abc=(max(play$Rating,na.rm=TRUE)-min(play$Rating,na.rm=TRUE))/30
+ggplot(play, aes(Rating)) +
+    geom_histogram(fill = 'skyblue', colour = 'black',stat='count',binwidth=9)+ggtitle("Category wise distribution of counts") + scale_x_log10()
+```
+
+--- We need to transform this map as the initial map was not very readable and we could not get clear understanding of the ratings of different apps.So here we applied log transformation in the above graph.
+
+> Question 5: Choose and calculate an appropriate measure of central tendency.
+
+#### Ans.
+</br>
+--- We will be chosing median to find the measure of central tendency.
+```{R}
+
+med_Rating <- median(play$Rating,na.rm = TRUE)
+med_Rating
+```
+
+> Question 6: Explain why you chose this as your measure of central tendency. Provide supporting evidence for your choice.
+
+#### Ans.
+</br>
+--- The measure of central tendency will give us an idea of where the center of the distribution is; that is, the value around which our data our data values are centered.We will be chosing median to find the measure of central tendency because as we can see the histogram and data are skewed.The distribution of the wage variable is  left skewed because median is higher than mean.
+```{R}
+med_Rating <- median(play$Rating,na.rm = TRUE)
+mean_Rating <- mean(play$Rating,na.rm = TRUE)
+ggplot(play,aes(x = Rating)) +
+  geom_histogram(fill = 'skyblue', colour = 'black', binwidth = 5) +
+  geom_vline(xintercept = med_Rating, colour = 'red', size = 1.5) +
+  geom_vline(xintercept = mean_Rating, colour = 'blue', size = 1.5)+ggtitle("Category wise distribution of counts")
+```
+> Question 7: Choose and calculate a measure of spread that is appropriate for your chosen measure of
+central tendency. Explain why you chose this as your measure of spread
+
+#### Ans.
+</br>
+--- As explained above that the histogram is left skewed, and for a skewed data we always use IQR (Interquartile Range) to find the measure of spread.IQR tells us how the middle 50% of the data is by subtracting third(75%le) and first (25%le).
+
+```{R}
+Q1<- quantile(play$Rating,na.rm=TRUE,0.25)
+Q3<- quantile(play$Rating,na.rm=TRUE,0.75)
+IQR(play$Rating,na.rm=TRUE)
+
+```
+
+## Univariate Analysis on Categorical Variable
+
+#### Here i am using  Category  Variable for doing univariate analysis using Categorical variable.
+
+#### Brief description About Varibale:
+
+* Category  : App category off applicaation like Family,Games likewise  and from statstical point of view it is categorical variable.
+
+
+> Question 1: Create an appropriate plot to visualize the distribution of counts for this variable.
+ 
+#### Ans.
+ 
+```{R}
+ggplot(play, aes(Category)) +
+    geom_histogram(fill = 'skyblue', colour = 'black',stat='count')+coord_flip()+ggtitle("Category wise distribution of counts")
+```
+
+> Question 2: Create an appropriate plot to visualize the distribution of proportions for this variable.
+
+```{R}
+ggplot(play, aes(x = Category, y = ..prop.., group = 1), stat = 'count') +
+  geom_bar(fill = 'skyblue', colour = 'black')+coord_flip()+ggtitle("Distribution of proportion  for Category of App")
+```
+
+> Question 3: Discuss any unusual observations for this variable?
+
+```{R}
+unique(play$Category)
+```
+> Question 4: Discuss if there are too few/too many unique values? 
+
+```{R}
+unique(play$Category)
+ggplot(play, aes(Category)) +
+    geom_histogram(fill = 'skyblue', colour = 'black',stat='count')+coord_flip()+ggtitle("Category wise distribution of counts")
+
+```
+
+--- As we can see in the graph below there are too many unique values- 34 to be precise.This is expected because this is a google play store data and apps from every domain will be present here.
+
+
+## Bivariate Analysis on pair of Numeric Variables
+
+#### Here i am using Rating and Installs variable for doing Bivariate Analysis on both Numerical variable.
+
+#### Brief Description About Both variables:
+
+* Installs  : Total Numer of Installs for each Application and from statstical point of view it is continuous variable.
+* Rating : Rating App has given between 1 to 5 where 1 is lowest 5 is highest and from statstical point of view it is continuous variable.</br>
+
+
+> Question 1: Create an appropriate plot to visualize the relationship between the two variables.
+(a) Two numerical variables:
+
+#### Ans1.
+```{R}
+play2 <- play %>% select(Installs, Rating) %>% filter(Rating != "NaN")
+ggplot(play2,aes(x=Rating,y=Installs))+geom_point()+scale_x_log10()+ggtitle("Relation b/w Installs and Rating ")
+```
+
+> Question 2: Describe the form, direction, and strength of the observed relationship. Include both qualitative and quantitative measures, as appropriate. (4 marks)
+
+#### Ans2.
+(A) 
+```{R}
+play2 <- play %>% select(Installs, Rating) %>% filter(Rating != "NaN")
+ggplot(play2,aes(x=Rating,y=Installs))+geom_point()+scale_x_log10()+ geom_smooth(method = 'lm', se=FALSE)+ggtitle("Relation b/w Installs and Rating ")
+```
+--- We can see in the above graph that as the no. of installs goes up the rating increases.Thus we can say that there is a strong,weak & linear relation between Installs and Rating.This relation  justifies the rating of all the apps.
+
+> Question 3: Explain what this relationship means in the context of the data. (4 marks)
+
+#### Ans.3
+```{R}
+play2 <- play %>% select(Installs, Rating) %>% filter(Rating != "NaN")
+ggplot(play2,aes(x=Rating,y=Installs))+geom_point()+scale_x_log10()+ geom_smooth(method = 'lm', se=FALSE)+ggtitle("Relation b/w Installs and Rating ")
+```
+
+--- This is a data of apps from google playstore.The graphs shows a positive linear relationship between Installs and Rating.This means Rating increases with increase in the number of installs.From business perspective we can say that an app is more likely to get higher rating if it has more installations because that is due to its popularity,performance and robustness.
+
+
+> Question 4:(A) Describe the variability that you observe in the plot and how that corresponds to the strength you calculated in #2 above. (3 marks)
+
+#### Ans4.
+```{R}
+cor(play$Rating,play$Installs,use="complete.obs")
+
+```
+--- The Pearson’s Correlation coefficient is a dimensionless measure of the dependency between the two variables.Here we can see that since the value is very less than 1 it denotes that this is a weak relation between these two variables.
+
+## Bivariate Analysis on one Numeric Variables and one categorical variable
+</br>
+
+#### Here i am using Rating variable as numeric variable and Content Rating as categorical variable for doing Bivariate Analysis.
+
+#### Brief Description About Both variables:
+
+* Rating : Rating App has given between 1 to 5 where 1 is lowest 5 is highest and from statstical point of view it is continuous variable.</br>
+
+* Content Rating  : App Rating Given by Which category  of person like Adult only 18+,everyone,everyone 10+ likewise and from statstical point of view it is categorical variable.
+
+> Question 1: Create an appropriate plot to visualize the relationship between the two variables. (4 marks)
+
+#### Ans.1
+
+```{R}
+
+play1 <- play %>% select(Content.Rating,Category, Current.Ver,Rating,Installs) %>% filter(Content.Rating != "")
+ggplot(play1,aes(x=Content.Rating,y=Rating))+geom_boxplot()+ggtitle("Relation b/w Content Rating and Rating ")
+```
+
+> Question 2: Describe the form, direction, and strength of the observed relationship. Include both qualitative and quantitative measures, as appropriate. (4 marks)
+
+#### Ans.2
+```{R}
+
+play1 <- play %>% select(Content.Rating,Category, Current.Ver,Rating,Installs) %>% filter(Content.Rating != "")
+ggplot(play1,aes(x=Content.Rating,y=Rating))+geom_boxplot()+ggtitle("Relation b/w Content Rating and Rating ")
+```
+--- We can see in the above graph that Rating is random and there is no direct relation with the Content Rating.As we can see Rating for apps under "Adult only 18+" has the highest median.It goes on decreasing for different content ratings and is least Mature 17+ if we exclude the unrated app.
+
+> Question3: Explain what this relationship means in the context of the data. (4 marks)
+
+#### Ans.3
+```{R}
+
+play1 <- play %>% select(Content.Rating,Category, Current.Ver,Rating,Installs) %>% filter(Content.Rating != "")
+ggplot(play1,aes(x=Content.Rating,y=Rating))+geom_boxplot()+ggtitle("Relation b/w Content Rating and Rating ")
+```
+
+--- We can see in the above graph that Rating is random and there is no direct relation with the Content Rating.As the apps can be for different target audience,we can see that the apps targeted for Adults only 18+ has the highest rating for the apps.For other groups rating is more or less distributed.We can say that apps designed for ADults 18+ are more robust and performance specific than those targeted on other sections of society which maybe due to the fact that Adults have more purchasing power as compared to teenagers and below.
+
+
+> Question 4: Describe the variability that you observe in the plot and how that corresponds to the strength you calculated in #2 above. (3 marks)
+
+#### Ans.4 
+</br>
+--- As we canot calculate The Pearson’s Correlation coefficient in this case as we can see in the code below since the value is not numeric there is no relation between these parameters as visible in the above code in answer 2. 
+
+### *** END of Member 3: Anshul Rawat Work ***
+
+
+</br>
+</br>
+
+### References:
+
+#### Member 1: Viraj Modi
+
+#### Links:
+
+--- https://www.kaggle.com/akashram/google-play-store-data-exploration-baseline. </br>
+--- https://www.kaggle.com/ebrahim94/clear-analysis-of-the-google-app-store#bivariate-plots-section. </br>
+--- https://www.kaggle.com/rtrench/practicing-eda#bivariate-plots-section. </br>
+
+</br>
+
+
+#### Member 2: Nimish Kumar
+
+#### Links:
+
+--- https://www.kaggle.com/danilodiogo/google-play-store-eda-plotting-with-highcharts
+
+</br>
+
+
+
+
+### Work Table:
+
+Member No. | Name         | Work Done
+---------- | -------------|-------------
+Member 1   | Viraj Modi   | Uivariate and Bivarite Analysis of  his part, Combining all members Work.
+Member 2   | Nimish Kumar | Uivariate and Bivarite Analysis of  his part.
+Member 3   | Anshul Rawat | Uivariate and Bivarite Analysis of  his part.
+
+
+</br>
+
+## Academic Integrity
+
+<p>We,Viraj Modi (student Id: 0748396), Nimish Kumar (Student Id: 0750313) and Anshul Rawat (Student Id: 0749792), hereby state that we have not communicated with or gained information in any way from any person or resource that would violate the College’s academic integrity policies, and that all work presented is our own. In addition, we also agree not to share our work in any way, before or after submission, that would violate the College’s academic integrity policies.</p>
+
+
